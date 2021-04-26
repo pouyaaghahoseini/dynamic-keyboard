@@ -1,113 +1,304 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(MyApp());
-}
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: KeyboardDemo(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class KeyboardDemo extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _KeyboardDemoState createState() => _KeyboardDemoState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+class _KeyboardDemoState extends State<KeyboardDemo> {
+  TextEditingController _controller = TextEditingController();
+  bool _readOnly = true;
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+      resizeToAvoidBottomInset: false,
+      body: Column(
+        children: [
+          SizedBox(height: 50),
+          TextField(
+            controller: _controller,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            style: TextStyle(fontSize: 24),
+            autofocus: true,
+            showCursor: true,
+            readOnly: _readOnly,
+          ),
+          IconButton(
+            icon: Icon(Icons.keyboard),
+            onPressed: () {
+              setState(() {
+                _readOnly = !_readOnly;
+              });
+            },
+          ),
+          Spacer(),
+          CustomKeyboard(
+            onTextInput: (myText) {
+              _insertText(myText);
+            },
+            onBackspace: () {
+              _backspace();
+            },
+          ),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+    );
+  }
+
+  void _insertText(String myText) {
+    final text = _controller.text;
+    final textSelection = _controller.selection;
+    final newText = text.replaceRange(
+      textSelection.start,
+      textSelection.end,
+      myText,
+    );
+    final myTextLength = myText.length;
+    _controller.text = newText;
+    _controller.selection = textSelection.copyWith(
+      baseOffset: textSelection.start + myTextLength,
+      extentOffset: textSelection.start + myTextLength,
+    );
+  }
+
+  void _backspace() {
+    final text = _controller.text;
+    final textSelection = _controller.selection;
+    final selectionLength = textSelection.end - textSelection.start;
+
+    // There is a selection.
+    if (selectionLength > 0) {
+      final newText = text.replaceRange(
+        textSelection.start,
+        textSelection.end,
+        '',
+      );
+      _controller.text = newText;
+      _controller.selection = textSelection.copyWith(
+        baseOffset: textSelection.start,
+        extentOffset: textSelection.start,
+      );
+      return;
+    }
+
+    // The cursor is at the beginning.
+    if (textSelection.start == 0) {
+      return;
+    }
+
+    // Delete the previous character
+    final previousCodeUnit = text.codeUnitAt(textSelection.start - 1);
+    final offset = _isUtf16Surrogate(previousCodeUnit) ? 2 : 1;
+    final newStart = textSelection.start - offset;
+    final newEnd = textSelection.start;
+    final newText = text.replaceRange(
+      newStart,
+      newEnd,
+      '',
+    );
+    _controller.text = newText;
+    _controller.selection = textSelection.copyWith(
+      baseOffset: newStart,
+      extentOffset: newStart,
+    );
+  }
+
+  bool _isUtf16Surrogate(int value) {
+    return value & 0xF800 == 0xD800;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
+
+class CustomKeyboard extends StatelessWidget {
+  CustomKeyboard({
+    Key key,
+    this.onTextInput,
+    this.onBackspace,
+  }) : super(key: key);
+
+  final ValueSetter<String> onTextInput;
+  final VoidCallback onBackspace;
+
+  void _textInputHandler(String text) => onTextInput?.call(text);
+
+  void _backspaceHandler() => onBackspace?.call();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 160,
+      color: Colors.blue,
+      child: Column(
+        children: [
+          buildRowOne(),
+          buildRowTwo(),
+          buildRowThree(),
+        ],
+      ),
+    );
+  }
+
+  Expanded buildRowOne() {
+    return Expanded(
+      child: Row(
+        children: [
+          TextKey(
+            text: '1',
+            onTextInput: _textInputHandler,
+          ),
+          TextKey(
+            text: '2',
+            onTextInput: _textInputHandler,
+          ),
+          TextKey(
+            text: '3',
+            onTextInput: _textInputHandler,
+          ),
+          TextKey(
+            text: '4',
+            onTextInput: _textInputHandler,
+          ),
+          TextKey(
+            text: '5',
+            onTextInput: _textInputHandler,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Expanded buildRowTwo() {
+    return Expanded(
+      child: Row(
+        children: [
+          TextKey(
+            text: 'a',
+            onTextInput: _textInputHandler,
+          ),
+          TextKey(
+            text: 'b',
+            onTextInput: _textInputHandler,
+          ),
+          TextKey(
+            text: 'c',
+            onTextInput: _textInputHandler,
+          ),
+          TextKey(
+            text: 'd',
+            onTextInput: _textInputHandler,
+          ),
+          TextKey(
+            text: 'e',
+            onTextInput: _textInputHandler,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Expanded buildRowThree() {
+    return Expanded(
+      child: Row(
+        children: [
+          TextKey(
+            text: ' ',
+            flex: 4,
+            onTextInput: _textInputHandler,
+          ),
+          BackspaceKey(
+            onBackspace: _backspaceHandler,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class TextKey extends StatelessWidget {
+  const TextKey({
+    Key key,
+    @required this.text,
+    this.onTextInput,
+    this.flex = 1,
+  }) : super(key: key);
+
+  final String text;
+  final ValueSetter<String> onTextInput;
+  final int flex;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      flex: flex,
+      child: Padding(
+        padding: const EdgeInsets.all(1.0),
+        child: Material(
+          color: Colors.blue.shade300,
+          child: InkWell(
+            onTap: () {
+              onTextInput?.call(text);
+            },
+            child: Container(
+              child: Center(child: Text(text)),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+class BackspaceKey extends StatelessWidget {
+  const BackspaceKey({
+    Key key,
+    this.onBackspace,
+    this.flex = 1,
+  }) : super(key: key);
+
+  final VoidCallback onBackspace;
+  final int flex;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      flex: flex,
+      child: Padding(
+        padding: const EdgeInsets.all(1.0),
+        child: Material(
+          color: Colors.blue.shade300,
+          child: InkWell(
+            onTap: () {
+              onBackspace?.call();
+            },
+            child: Container(
+              child: Center(
+                child: Icon(Icons.backspace),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
