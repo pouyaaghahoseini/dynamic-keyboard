@@ -227,8 +227,8 @@ class SnackBarPage extends StatelessWidget {
                       errors[i].toString() +
                       "\n";
                 }
-                writeMessage(message);
-                // print(message);
+                // writeMessage(message);
+                print(message);
                 Navigator.pop(context);
                 // Some code to undo the change.
               },
@@ -264,7 +264,7 @@ class CustomKeyboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 200,
+      height: 210,
       color: const Color(0xffe9eaee),
       child: Column(
         children: [

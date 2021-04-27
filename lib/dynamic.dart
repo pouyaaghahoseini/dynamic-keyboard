@@ -230,8 +230,8 @@ class SnackBarPage extends StatelessWidget {
                       errors[i].toString() +
                       "\n";
                 }
-                // print(message);
-                writeMessage(message);
+                print(message);
+                // writeMessage(message);
                 Navigator.pop(context);
                 // Some code to undo the change.
               },

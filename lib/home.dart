@@ -21,7 +21,7 @@ class _HomeState extends State<Home> {
     return Scaffold(
       backgroundColor: Color(0xff15202b),
       appBar: AppBar(
-        title: Text('Welcome to Dynamic Keyboard Experiment'),
+        title: Text('Dynamic Keyboard Experiment'),
         centerTitle: true,
         backgroundColor: Color(0xff1D2C3B),
       ),
