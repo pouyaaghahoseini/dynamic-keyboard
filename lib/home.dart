@@ -8,9 +8,9 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   getPermission() async {
+    Permission.storage.request();
     var permitStatus = await Permission.storage.status;
     print(permitStatus);
-    Permission.storage.request();
   }
 
   @override
@@ -35,7 +35,7 @@ class _HomeState extends State<Home> {
             Text(
               'Please choose your Keyboard type.',
               style: TextStyle(
-                  fontSize: 35,
+                  fontSize: 20,
                   color: Colors.white,
                   fontWeight: FontWeight.bold),
             ),
@@ -46,8 +46,8 @@ class _HomeState extends State<Home> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 SizedBox(
-                  height: 150.0,
-                  width: 200.0,
+                  height: 100.0,
+                  width: 150.0,
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pushNamed(context,
@@ -64,8 +64,8 @@ class _HomeState extends State<Home> {
                   ),
                 ),
                 SizedBox(
-                  height: 150.0,
-                  width: 200.0,
+                  height: 100.0,
+                  width: 150.0,
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pushNamed(context,

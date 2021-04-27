@@ -39,6 +39,11 @@ void resetRowFlex(rowFlex) {
   rowFlex[2] = defaultRowFlex;
 }
 
+void resetKeyboard(flexTable, rowFlex) {
+  flexTable.updateAll((dynamic key, val) => (defaultFlex));
+  resetRowFlex(rowFlex);
+}
+
 void updateFlex(key, flexTable, rowFlex) {
   if (key == 'q') {
     flexTable.updateAll((dynamic key, val) => (defaultFlex));

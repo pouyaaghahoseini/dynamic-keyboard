@@ -16,10 +16,14 @@ class _NormalKeyboardState extends State<NormalKeyboard> {
   bool _readOnly = true;
   List wordTimes;
   List words;
+  List errors;
+  int madeError;
   @override
   void initState() {
     wordTimes = [];
     words = [];
+    errors = [];
+    madeError = 0;
     print("initstate function ran------------");
     super.initState();
   }
@@ -54,10 +58,10 @@ class _NormalKeyboardState extends State<NormalKeyboard> {
           ),
           Center(
             child: Container(
-              margin: const EdgeInsets.all(120.0),
+              margin: const EdgeInsets.all(50.0),
               color: Color(0xffbbb2e9),
-              width: 300,
-              height: 100,
+              width: 350,
+              height: 30,
               child: Center(
                   child: Text(
                 cardWord,
@@ -68,6 +72,7 @@ class _NormalKeyboardState extends State<NormalKeyboard> {
           SnackBarPage(
             wordTimes: wordTimes,
             words: words,
+            errors: errors,
           ),
           Spacer(),
           CustomKeyboard(onTextInput: (myText) {
@@ -92,6 +97,8 @@ class _NormalKeyboardState extends State<NormalKeyboard> {
       print("the time difference was $timedif");
       wordTimes.add(timedif);
       words.add(cardWord);
+      errors.add(madeError);
+      madeError = 0;
       print(wordTimes);
       var temp = data.getRandomElement(data.words);
       print(temp);
@@ -127,7 +134,7 @@ class _NormalKeyboardState extends State<NormalKeyboard> {
     final text = _controller.text;
     final textSelection = _controller.selection;
     final selectionLength = textSelection.end - textSelection.start;
-
+    madeError = 1;
     // There is a selection.
     if (selectionLength > 0) {
       final newText = text.replaceRange(
@@ -181,15 +188,17 @@ class SnackBarPage extends StatelessWidget {
     Key key,
     this.wordTimes,
     this.words,
+    this.errors,
   }) : super(key: key);
 
   final List wordTimes;
   final List words;
+  final List errors;
   String filepath = ("/storage/emulated/0/Download/");
   String fileName;
 
   Future<File> get _localFile async {
-    return File("$filepath" + "/" + "$fileName" + ".txt");
+    return File("$filepath" + "$fileName" + ".txt");
   }
 
   Future<File> writeMessage(String message) async {
@@ -211,9 +220,15 @@ class SnackBarPage extends StatelessWidget {
                 print("Hello $wordTimes");
                 String message = "";
                 for (int i = 0; i < wordTimes.length; i++) {
-                  message += words[i] + "," + wordTimes[i].toString() + "\n";
+                  message += words[i] +
+                      "," +
+                      wordTimes[i].toString() +
+                      "," +
+                      errors[i].toString() +
+                      "\n";
                 }
                 writeMessage(message);
+                // print(message);
                 Navigator.pop(context);
                 // Some code to undo the change.
               },
@@ -249,7 +264,7 @@ class CustomKeyboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 300,
+      height: 200,
       color: const Color(0xffe9eaee),
       child: Column(
         children: [
